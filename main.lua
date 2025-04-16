@@ -35,6 +35,7 @@ end
 
 
 function love.load(args, unfilteredArgs)
+	love.window.setFullscreen(true)
 
 	quizi_vos = Card:new({x=0, y=0, image = love.graphics.newImage("images/path_cards/Quizi_Vos.jpg")})
 
@@ -51,4 +52,11 @@ function love.update(dt)
 
 	quizi_vos:update(dt)
 
+end
+
+function love.keypressed(key, scancode, isrepeat)
+	-- exit code
+	if key == "c" then
+		love.event.quit()
+	end
 end
