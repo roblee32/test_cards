@@ -1,6 +1,20 @@
 Card = {height= 250, width= 100, x=nil, y=nil}
 Card.__index = Card
 
+Slot = {height=250, width=100}
+Slot.__index = Slot
+
+function Slot.draw(self)
+	love.graphics.rectangle("line", self.x, self.y, self.width, self.height, 2)
+end
+
+
+function Slot:new(o)
+	new_slot = o
+	setmetatable(new_slot, Slot)
+	return new_slot
+end
+
 
 function Card.update(self, dt)
 	local cur_x
@@ -38,13 +52,17 @@ function love.load(args, unfilteredArgs)
 	love.window.setFullscreen(true)
 
 	quizi_vos = Card:new({x=0, y=0, image = love.graphics.newImage("images/path_cards/Quizi_Vos.jpg")})
-
+	slots = {Slot:new({x=200, y=200}), Slot:new({x=400, y=200})}
 end
 
 
 function love.draw()
 
 	love.graphics.draw(quizi_vos.image, quizi_vos.x, quizi_vos.y, 0, 0.5)
+
+	for i, slot in pairs(slots) do
+		slot:draw()
+	end
 
 end
 
@@ -53,6 +71,8 @@ function love.update(dt)
 	quizi_vos:update(dt)
 
 end
+
+
 
 function love.keypressed(key, scancode, isrepeat)
 	-- exit code
