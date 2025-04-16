@@ -1,7 +1,7 @@
-Card = {height= 250, width= 100, x=nil, y=nil}
+Card = {height= 340, width= 240, x=nil, y=nil}
 Card.__index = Card
 
-Slot = {height=250, width=100}
+Slot = {height=340, width=240}
 Slot.__index = Slot
 
 function Slot.draw(self)
@@ -41,6 +41,16 @@ function Card.update(self, dt)
 
 end
 
+function Card.draw(self)
+	local image_width, image_height = self.image:getDimensions()
+
+	local y_scale = self.height / image_height
+	local x_scale = self.width / image_width
+
+
+	love.graphics.draw(self.image, self.x, self.y, 0, y_scale, x_scale)
+end
+
 function Card:new(o)
 	new_card = o
 	setmetatable(new_card, Card)
@@ -58,7 +68,7 @@ end
 
 function love.draw()
 
-	love.graphics.draw(quizi_vos.image, quizi_vos.x, quizi_vos.y, 0, 0.5)
+	quizi_vos:draw()
 
 	for i, slot in pairs(slots) do
 		slot:draw()
