@@ -1,4 +1,4 @@
-Card = {height= 340, width= 240, x=nil, y=nil}
+Card = {height= 340, width=240, x=nil, y=nil}
 Card.__index = Card
 
 Slot = {height=340, width=240}
@@ -23,6 +23,7 @@ end
 
 function Zone:new(o)
 	new_zone = o
+	new_zone.contained_cards = {}
 	setmetatable(new_zone, Zone)
 	return new_zone
 
@@ -31,18 +32,32 @@ end
 
 function Zone.draw(self)
 	love.graphics.rectangle("line", self.x, self.y, self.width, self.height, 2)
+	love.graphics.print(#self.contained_cards, self.x, self.y+self.height+20)
 end
 
-function Zone.move_cards(self, cards)
 
+function Zone.set_card_targets(self)
 	local contained_cards = {}
+	local cards_count = 0
 
 	for i, card in pairs(cards) do
-
-
+		if card:within(self.x, self.y, self.width, self.height) then
+			table.insert(contained_cards, card)
+			cards_count = cards_count + 1
+		end
 	end
 
+	self.contained_cards = contained_cards
 
+	local availible_space_x = self.width - (cards_count * Card.width)
+	local x_spacing = availible_space_x / (cards_count + 1)
+	-- if availible space negative, overlap cards sensibly
+
+
+	for i, card in pairs(contained_cards) do
+		card.target_x = self.x + x_spacing * i + Card.width * (i - 1)
+		card.target_y = self.y
+	end
 end
 
 
@@ -66,9 +81,6 @@ end
 
 
 function Card.slot_in(self)
-
-	local slots = slots
-
 	for i, slot in pairs(slots) do
 		if self:within(slot.x, slot.y, slot.width, slot.height) then
 			self.target_x = slot.x
@@ -76,6 +88,13 @@ function Card.slot_in(self)
 			return
 		end
 	end
+
+	for i, zone in pairs(zones) do
+		if self:within(zone.x, zone.y, zone.height, zone.height) then
+			zone:set_card_targets()
+		end
+	end
+
 end
 
 
@@ -83,7 +102,7 @@ function Card.update(self, dt)
 	local cur_x, cur_y = love.mouse.getPosition()
 
 	if love.mouse.isDown(1) then
-		if cur_x > self.x and cur_x < self.x + self.image:getPixelWidth() and cur_y > self.y and cur_y < self.y + self.image:getPixelHeight() then
+		if cur_x > self.x and cur_x < self.x + self.width and cur_y > self.y and cur_y < self.y + self.height then
 			if not self.grabbed then
 				self.offset_x = self.x - cur_x
 				self.offset_y = self.y - cur_y
@@ -93,13 +112,15 @@ function Card.update(self, dt)
 	else
 		if self.grabbed then
 			-- if just released
-			-- snap to a slot if the card is within it
-			self:slot_in()
+			-- recalulate cards target positions
+
+			for i, zone in pairs(zones) do
+				zone:set_card_targets()
+			end
+			
 		end
 
-
 		self:animate(dt)
-
 		self.grabbed = false
 	end
 
@@ -141,36 +162,46 @@ function Card:new(o)
 	new_card.target_y = o.y
 	setmetatable(new_card, Card)
 	return new_card
+
 end
 
 
 function love.load(args, unfilteredArgs)
 	love.window.setFullscreen(true)
 
-	slots = {Slot:new({x=720, y=240})}
+	-- slots = {Slot:new({x=720, y=240})}
 
-	-- zones = {Zone:new({x=240, y=240})}
+	slots = {}
+
+	zones = {Zone:new({x=400, y=400})}
 	quizi_vos = Card:new({x=0, y=0, image = love.graphics.newImage("images/path_cards/Quizi_Vos.jpg")})
-
+	quizi_vos_2 = Card:new({x=500, y=0, image = love.graphics.newImage("images/path_cards/Quizi_Vos.jpg")})
+	cards = {quizi_vos, quizi_vos_2}
 end
 
 
 function love.draw()
 
-	quizi_vos:draw()
+	for i, card in pairs(cards) do
+		card:draw()
+	end
 
 	for i, slot in pairs(slots) do
 		slot:draw()
 	end
 
-	-- for i, zone in pairs(zones) do
- 	-- 	zone:draw()
- 	-- end
+	slots = {}
+
+	for i, zone in pairs(zones) do
+ 		zone:draw()
+ 	end
 end
 
 function love.update(dt)
 
-	quizi_vos:update(dt)
+	for i, card in pairs(cards) do
+		card:update(dt)
+	end
 
 end
 
