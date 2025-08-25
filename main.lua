@@ -4,6 +4,9 @@ Card.__index = Card
 Slot = {height=340, width=240}
 Slot.__index = Slot
 
+Zone = {height=340, width=1080}
+Zone.__index = Zone
+
 function Slot.draw(self)
 	love.graphics.rectangle("line", self.x, self.y, self.width, self.height, 2)
 end
@@ -16,11 +19,32 @@ function Slot:new(o)
 end
 
 
-function Card.slot_in(self)
-	-- check each corner of the card
-	-- if any are within the dimensions of the slot
-	-- fix the position of the card to the slot
-	-- TODO a smooth animation for this
+function Zone:new(o)
+	new_zone = o
+	setmetatable(new_zone, Zone)
+	return new_zone
+
+end
+
+
+function Zone.draw(self)
+	love.graphics.rectangle("line", self.x, self.y, self.width, self.height, 2)
+end
+
+function Zone.move_cards(self, cards)
+
+	local contained_cards = {}
+
+	for i, card in pairs(cards) do
+
+
+	end
+
+
+end
+
+
+function Card.within(self, x, y, width, height)
 	local corners = {
 		{x=self.x, y=self.y},
 		{x=self.x + self.width, y=self.y},
@@ -28,15 +52,27 @@ function Card.slot_in(self)
 		{x=self.x + self.width, y=self.y + self.height}
 	}
 
+	for j, corner in pairs(corners) do
+		if corner.x >= x and corner.x <= x + width and corner.y >= y and corner.y <= y + height then
+			return true
+		end
+	end
+	return false
+end
+
+
+function Card.slot_in(self)
+	-- check each corner of the card
+	-- if any are within the dimensions of the slot
+	-- fix the position of the card to the slot
+	-- TODO a smooth animation for this
+
 	local slots = slots
 
 	for i, slot in pairs(slots) do
-		for j, corner in pairs(corners) do
-			if corner.x >= slot.x and corner.x <= slot.x + slot.width and corner.y >= slot.y and corner.y <= slot.y + slot.height then
-				self.x = slot.x
-				self.y = slot.y
-				return
-			end
+		if self:within(slot.x, slot.y, slot.width, slot.height) then
+			self.x = slot.x
+			self.y = slot.y
 		end
 	end
 end
@@ -91,7 +127,9 @@ end
 function love.load(args, unfilteredArgs)
 	love.window.setFullscreen(true)
 
-	slots = {Slot:new({x=240, y=240}), Slot:new({x=720, y=240})}
+	slots = {Slot:new({x=720, y=240})}
+
+	-- zones = {Zone:new({x=240, y=240})}
 	quizi_vos = Card:new({x=0, y=0, image = love.graphics.newImage("images/path_cards/Quizi_Vos.jpg")})
 
 end
@@ -105,6 +143,9 @@ function love.draw()
 		slot:draw()
 	end
 
+	-- for i, zone in pairs(zones) do
+ 	-- 	zone:draw()
+ 	-- end
 end
 
 function love.update(dt)
