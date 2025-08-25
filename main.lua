@@ -7,6 +7,8 @@ Slot.__index = Slot
 Zone = {height=340, width=1080}
 Zone.__index = Zone
 
+ANIMATION_SPEED = 10
+
 function Slot.draw(self)
 	love.graphics.rectangle("line", self.x, self.y, self.width, self.height, 2)
 end
@@ -45,6 +47,8 @@ end
 
 
 function Card.within(self, x, y, width, height)
+	-- check each corner of the card
+	-- if any are within the dimensions of the slot return true
 	local corners = {
 		{x=self.x, y=self.y},
 		{x=self.x + self.width, y=self.y},
@@ -62,17 +66,14 @@ end
 
 
 function Card.slot_in(self)
-	-- check each corner of the card
-	-- if any are within the dimensions of the slot
-	-- fix the position of the card to the slot
-	-- TODO a smooth animation for this
 
 	local slots = slots
 
 	for i, slot in pairs(slots) do
 		if self:within(slot.x, slot.y, slot.width, slot.height) then
-			self.x = slot.x
-			self.y = slot.y
+			self.target_x = slot.x
+			self.target_y = slot.y
+			return
 		end
 	end
 end
@@ -96,13 +97,30 @@ function Card.update(self, dt)
 			self:slot_in()
 		end
 
+
+		self:animate(dt)
+
 		self.grabbed = false
 	end
 
 	if self.grabbed then
 		self.x = cur_x + self.offset_x
 		self.y = cur_y + self.offset_y
+		self.target_x = self.x
+		self.target_y = self.y
 	end
+end
+
+
+function Card.animate(self, dt)
+
+	local x_offset = self.target_x - self.x
+	local y_offset = self.target_y - self.y
+
+
+	self.x = self.x + x_offset * ANIMATION_SPEED * dt
+	self.y = self.y + y_offset * ANIMATION_SPEED * dt
+
 end
 
 
@@ -119,6 +137,8 @@ end
 
 function Card:new(o)
 	new_card = o
+	new_card.target_x = o.x
+	new_card.target_y = o.y
 	setmetatable(new_card, Card)
 	return new_card
 end
